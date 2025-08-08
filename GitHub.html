@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tuition Calculator (10-Month, Aid + Interest)</title>
+<style>
+  :root { --brand1:#4b2e83; --brand2:#d4af37; --bg:#f7f7fb; --text:#1f1f1f; --muted:#6b6b6b; }
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;background:var(--bg);color:var(--text)}
+  .wrap{max-width:760px;margin:32px auto;padding:0 16px}
+  .card{background:#fff;border-radius:14px;box-shadow:0 6px 18px rgba(0,0,0,.08);padding:16px}
+  h1{margin:0 0 6px;font-weight:800}
+  .muted{color:var(--muted);font-size:14px}
+  label{display:block;font-weight:700;margin:14px 0 6px}
+  input[type=number],select{width:100%;box-sizing:border-box;padding:12px;border-radius:10px;border:1px solid #d7d7e3;font-size:16px}
+  input[type=number]:focus,select:focus{outline:2px solid rgba(75,46,131,.25);border-color:var(--brand1)}
+  .btn{background:var(--brand2);color:#222;font-weight:800;padding:12px 16px;border-radius:12px;border:0;cursor:pointer;margin-top:12px}
+  .kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+  .box{background:#fafafe;border:1px solid #ececf5;border-radius:12px;padding:12px;text-align:center}
+  .label{color:var(--muted);font-size:12px}
+  .val{font-size:20px;font-weight:800;margin-top:6px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .small{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Tuition Calculator</h1>
+      <p class="muted">Base tuition: <strong>$36,500</strong>. Aid capped at <strong>20%</strong>. Fixed <strong>10‑month</strong> plan. Choose interest mode and click **Calculate**.</p>
+
+      <div class="row">
+        <div>
+          <label for="aidPct">Aid Percentage (0–20%)</label>
+          <input id="aidPct" type="number" min="0" max="20" step="1" value="0" />
+          <div class="small">Reduces the $36,500 tuition before interest.</div>
+        </div>
+        <div>
+          <label for="interestMode">Interest</label>
+          <select id="interestMode">
+            <option value="annual6">6% annual (APR), compounded monthly</option>
+            <option value="monthly6">6% per month, compounded monthly</option>
+          </select>
+          <div class="small">Note: 6% per month is very high (≈ 101% APR). Pick the mode you intend.</div>
+        </div>
+      </div>
+
+      <button class="btn" onclick="doCalc()">Calculate</button>
+
+      <div class="kpi">
+        <div class="box">
+          <div class="label">Aid Amount (annual)</div>
+          <div id="aidAmt" class="val">$0</div>
+        </div>
+        <div class="box">
+          <div class="label">Tuition After Aid (principal)</div>
+          <div id="afterAid" class="val">$36,500</div>
+        </div>
+        <div class="box">
+          <div class="label">Monthly Payment (10 mos)</div>
+          <div id="monthly" class="val">$0</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div>
+          <div class="small">Payment formula: PMT = P × r / (1 − (1+r)<sup>−n</sup>)</div>
+        </div>
+        <div class="small" style="text-align:right">P: principal after aid • r: monthly rate • n: 10 months</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+function money(n){ return "$" + (Math.round(n)).toLocaleString(); }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+function doCalc(){
+  var base = 36500;
+  var pct = +document.getElementById("aidPct").value || 0;
+  pct = clamp(pct, 0, 20);
+  document.getElementById("aidPct").value = pct; // normalize within 0-20
+
+  var mode = document.getElementById("interestMode").value;
+  var r = (mode === "monthly6") ? 0.06 : (0.06/12); // monthly interest rate
+  var n = 10;
+
+  var aidAmount = base * (pct/100);
+  var principal = base - aidAmount;
+
+  // Amortized monthly payment
+  var monthly = 0;
+  if (r > 0) {
+    monthly = principal * r / (1 - Math.pow(1 + r, -n));
+  } else {
+    monthly = principal / n;
+  }
+
+  document.getElementById("aidAmt").textContent = money(aidAmount);
+  document.getElementById("afterAid").textContent = money(principal);
+  document.getElementById("monthly").textContent = money(monthly);
+}
+</script>
+</body>
+</html>
